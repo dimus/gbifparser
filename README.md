@@ -1,6 +1,8 @@
 GBIF Parser
 -----------
 
+[![DOI](https://zenodo.org/badge/19435/dimus/gbifparser.svg)](https://zenodo.org/badge/latestdoi/19435/dimus/gbifparser)
+
 This is a thin wrapper for GBIF Scientific Name Parser
 
 Prerequisites
