@@ -31,7 +31,7 @@ Parse names from a file (one name per line)
 #to run on all available CPU threads
 java -jar target/scala-2.11/gbif-parser-assembly-0.1.0-SNAPSHOT.jar -input names.txt
 
-#to run 2 CPU threads
+#to run on 2 CPU threads
 java -jar -Dparallelism=2 target/scala-2.11/gbif-parser-assembly-0.1.0-SNAPSHOT.jar -input names.txt
 ```
 
