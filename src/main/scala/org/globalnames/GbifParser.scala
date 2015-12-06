@@ -1,7 +1,9 @@
 package org.globalnames.gbifparser
 
 import org.gbif.nameparser._
-import java.io.{File, PrintWriter}
+import java.io.{BufferedWriter, FileWriter}
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.concurrent.forkjoin.ForkJoinPool
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -34,25 +36,37 @@ object GbifParser {
 
     def parse(name: String): String = {
       Try(np.parse(name, null)) match {
-        case Failure(_) => s"${name}\tFAILURE\tFAILURE\n"
+        case Failure(_) => s"${name}\tFAILURE\tFAILURE"
         case Success(p) =>
-          s"${name}\t${p.canonicalName}\t${p.authorshipComplete}\n"
+          s"${name}\t${p.canonicalName}\t${p.authorshipComplete}"
       }
 
     }
 
-    def startFileParse(input: String, output: String) = {
-      val writer = new PrintWriter(new File(output))
-      Try(Source.fromFile(input)) match {
-        case Failure(e) => Console.err.println(s"No such file: $input")
+    def startFileParse(inputFilePath: String, outputFilePath: String) = {
+      Try(Source.fromFile(inputFilePath)) match {
+        case Failure(e) => Console.err.println(s"No such file: $inputFilePath")
         case Success(f) =>
-          f.getLines().zipWithIndex.foreach {
-            case (line, i) =>
-              if ((i + 1) % 10000 == 0) println(s"Parsed ${i + 1} lines")
-              writer.write(parse(line.trim))
+          val parallelism = Option(sys.props("parallelism")).map { _.toInt }
+            .getOrElse(ForkJoinPool.getCommonPoolParallelism)
+          println(s"running with parallelism: $parallelism")
+          val parsedNamesCount = new java.util.concurrent.atomic.AtomicInteger()
+          val namesInput = f.getLines().toVector.par
+          namesInput.tasksupport =
+            new ForkJoinTaskSupport(new ForkJoinPool(parallelism))
+          val namesParsed = namesInput.map { name ⇒
+            val currentParsedCount = parsedNamesCount.incrementAndGet()
+            if (currentParsedCount % 10000 == 0) {
+              println(s"Parsed $currentParsedCount of ${namesInput.size} lines")
+            }
+            parse(name.trim)
           }
+          val writer = new BufferedWriter(new FileWriter(outputFilePath))
+          namesParsed.seq.foreach { name ⇒
+            writer.write(name + System.lineSeparator)
+          }
+          writer.close()
       }
-      writer.close()
     }
 
     val options = nextOption(Map(), argList)
