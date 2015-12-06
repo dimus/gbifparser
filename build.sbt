@@ -1,5 +1,5 @@
 name := "gbif-parser"
-version := "0.1.0-SNAPSHOT"
+version := "0.1.0"
 scalaVersion := "2.11.7"
 
 resolvers += "gbif-all" at "http://repository.gbif.org/content/groups/gbif"
