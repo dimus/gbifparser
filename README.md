@@ -22,7 +22,11 @@ sbt assembly
 Parse one name
 
 ```
+#to run on all available CPU threads
 java -jar target/scala-2.11/gbif-parser-assembly-0.1.0-SNAPSHOT.jar "Sogaella debeckeri meridionalis Leleup 1977"
+
+#to run 2 CPU threads
+java -jar -Dparallelism=2 target/scala-2.11/gbif-parser-assembly-0.1.0-SNAPSHOT.jar "Sogaella debeckeri meridionalis Leleup 1977"
 ```
 
 Parse names from a file (one name per line)
